@@ -1,27 +1,28 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
-@inject NavigationManager NavigationManager
+@using BlazorChess.Shared
+@inject NavigationManager _navigationManager
 @implements IAsyncDisposable
 
 @{
-	const int boardDimensions = 8;
 	const string cellDimensions = "5rem";
-	const string chessboardColour1 = "#bcbcbc";
-	const string chessboardColour2 = "#777777";
+	const string lightColour = "#bcbcbc";
+	const string darkColour = "#777777";
 }
 
 @if (!IsConnected)
 {
-	<h3 style="text-align: center"><div class="ui active inline loader"></div> Connecting to server, please wait.</h3>
+	<h3 style="text-align: center">
+		<div class="active inline loader ui"></div> Connecting to server, please wait.
+	</h3>
 }
 
 <div class="chessboard">
-	@for (var i = 0; i < boardDimensions*boardDimensions; i++)
+	@for (var i = 0; i < 64; i++)
 	{
-		<div class="chessboard-cell"
-		     style="background-color: @(i % 2 == (i / boardDimensions % 2 == 0 ? 0 : 1)
-			                              ? chessboardColour1
-			                              : chessboardColour2)"></div>
+		<div class="chessboard-cell" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+			@_board?.Cells.ElementAtOrDefault(i)?.Character
+		</div>
 	}
 </div>
 
@@ -33,35 +34,33 @@
 		border: solid 1px darkgrey;
 		width: min-content;
 	}
+	.chessboard-cell {
+		color: black;
+        font-size: calc(@cellDimensions - 1rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+	}
 </style>
 
 @code {
 	private HubConnection _hubConnection;
 	private string _pos1;
 	private string _pos2;
+	private ChessBoard _board = ChessBoard.DefaultChessBoard;
 
 	protected override async Task OnInitializedAsync()
 	{
-		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(NavigationManager.ToAbsoluteUri("/chesshub"))
-			.Build();
+		_hubConnection = new HubConnectionBuilder().WithUrl(_navigationManager.ToAbsoluteUri("/chesshub")).Build();
 
-		_hubConnection.On<string, string>("ReceiveMove", (pos1, pos2) =>
-		{
-			StateHasChanged();
-		});
+		_hubConnection.On<string, string>("ReceiveMove", (pos1, pos2) => { StateHasChanged(); });
 
 		await _hubConnection.StartAsync();
 	}
 
-	Task Send() =>
-		_hubConnection.SendAsync("SendMove", _pos1, _pos2);
+	Task Send() => _hubConnection.SendAsync("SendMove", _pos1, _pos2);
 
-	public bool IsConnected =>
-		_hubConnection.State == HubConnectionState.Connected;
-        
-	public async ValueTask DisposeAsync()
-	{
-		await _hubConnection.DisposeAsync();
-	}
+	public bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
+
+	public async ValueTask DisposeAsync() { await _hubConnection.DisposeAsync(); }
 }
