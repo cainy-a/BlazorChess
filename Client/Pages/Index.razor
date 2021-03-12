@@ -1,0 +1,67 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@{
+	const int boardDimensions = 8;
+	const string cellDimensions = "5rem";
+	const string chessboardColour1 = "#bcbcbc";
+	const string chessboardColour2 = "#777777";
+}
+
+@if (!IsConnected)
+{
+	<h3 style="text-align: center"><div class="ui active inline loader"></div> Connecting to server, please wait.</h3>
+}
+
+<div class="chessboard">
+	@for (var i = 0; i < boardDimensions*boardDimensions; i++)
+	{
+		<div class="chessboard-cell"
+		     style="background-color: @(i % 2 == (i / boardDimensions % 2 == 0 ? 0 : 1)
+			                              ? chessboardColour1
+			                              : chessboardColour2)"></div>
+	}
+</div>
+
+<style>
+	.chessboard {
+		display: grid;
+		grid-template-columns: repeat(8, @cellDimensions);
+		grid-auto-rows: @cellDimensions;
+		border: solid 1px darkgrey;
+		width: min-content;
+	}
+</style>
+
+@code {
+	private HubConnection _hubConnection;
+	private string _pos1;
+	private string _pos2;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_hubConnection = new HubConnectionBuilder()
+			.WithUrl(NavigationManager.ToAbsoluteUri("/chesshub"))
+			.Build();
+
+		_hubConnection.On<string, string>("ReceiveMove", (pos1, pos2) =>
+		{
+			StateHasChanged();
+		});
+
+		await _hubConnection.StartAsync();
+	}
+
+	Task Send() =>
+		_hubConnection.SendAsync("SendMove", _pos1, _pos2);
+
+	public bool IsConnected =>
+		_hubConnection.State == HubConnectionState.Connected;
+        
+	public async ValueTask DisposeAsync()
+	{
+		await _hubConnection.DisposeAsync();
+	}
+}
