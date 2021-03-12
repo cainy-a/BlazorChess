@@ -17,13 +17,45 @@
 	</h3>
 }
 
-<div class="chessboard">
-	@for (var i = 0; i < 64; i++)
-	{
-		<div class="chessboard-cell" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
-			@_board?.Cells.ElementAtOrDefault(i)?.Character
+<div style="display: flex;">
+	<div class="chessboard">
+		@for (var i = 0; i < 64; i++)
+		{
+			<div class="chessboard-cell" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+				@_board?.Cells.ElementAtOrDefault(i)?.Character
+			</div>
+		}
+	</div>
+	
+	<div class="chessboard-sidebar ui fluid inverted card">
+		<div style="width: max-content; margin-bottom: 1rem">
+			<h1 style="margin: 0">Welcome to QS Chess</h1>
+			<h3 style="margin: 0; text-align: right">Quick, Simple Chess</h3>
 		</div>
-	}
+		<p>No signups, leaderboards, social features, weird gamemodes, none of that. It's just chess. Easy and simple.</p>
+
+		<p>TODO FOR FUTURE ME: Important game info here 🔽</p>
+		<div class="ui inverted fluid placeholder">
+			<div class="paragraph">
+				@for (var i = 0; i < 5; i++)
+				{
+					<div class="line"></div>
+				}
+			</div>
+			<div class="paragraph">
+				@for (var i = 0; i < 7; i++)
+				{
+					<div class="line"></div>
+				}
+			</div>
+			<div class="paragraph">
+				@for (var i = 0; i < 3; i++)
+				{
+					<div class="line"></div>
+				}
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -36,10 +68,14 @@
 	}
 	.chessboard-cell {
 		color: black;
-        font-size: calc(@cellDimensions - 1rem);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+		font-size: calc(@cellDimensions - 1rem);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.chessboard-sidebar {
+		margin: 0 0 0 1rem !important;
+		padding: 1rem !important;
 	}
 </style>
 
