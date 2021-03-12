@@ -21,13 +21,19 @@
 	<div class="chessboard">
 		@for (var i = 0; i < 64; i++)
 		{
-			<div class="chessboard-cell" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
-				@_board?.Cells.ElementAtOrDefault(i)?.Character
+			<div class="chessboard-cell"
+				 @ondragenter="HandleDragEnter"
+				 @ondragleave="HandleDragLeave"
+				 ondragover="event.preventDefault();"
+				 ondragstart="event.dataTransfer.setData('', event.target.id);"
+				 @ondrop="HandleDrop"
+				 style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+				<span draggable="true" style="cursor: grab">@_board?.Cells.ElementAtOrDefault(i)?.Character</span>
 			</div>
 		}
 	</div>
-	
-	<div class="chessboard-sidebar ui fluid inverted card">
+
+	<div class="card chessboard-sidebar fluid inverted ui">
 		<div style="width: max-content; margin-bottom: 1rem">
 			<h1 style="margin: 0">Welcome to QS Chess</h1>
 			<h3 style="margin: 0; text-align: right">Quick, Simple Chess</h3>
@@ -35,25 +41,16 @@
 		<p>No signups, leaderboards, social features, weird gamemodes, none of that. It's just chess. Easy and simple.</p>
 
 		<p>TODO FOR FUTURE ME: Important game info here 🔽</p>
-		<div class="ui inverted fluid placeholder">
-			<div class="paragraph">
-				@for (var i = 0; i < 5; i++)
-				{
-					<div class="line"></div>
-				}
-			</div>
-			<div class="paragraph">
-				@for (var i = 0; i < 7; i++)
-				{
-					<div class="line"></div>
-				}
-			</div>
-			<div class="paragraph">
-				@for (var i = 0; i < 3; i++)
-				{
-					<div class="line"></div>
-				}
-			</div>
+		<div class="fluid inverted placeholder ui">
+			@foreach (var n in new[] {5, 7, 3})
+			{
+				<div class="paragraph">
+					@for (var i = 0; i < n; i++)
+					{
+						<div class="line"></div>
+					}
+				</div>
+			}
 		</div>
 	</div>
 </div>
@@ -84,7 +81,14 @@
 	private string _pos1;
 	private string _pos2;
 	private ChessBoard _board = ChessBoard.DefaultChessBoard;
+	private Piece _draggingPiece;
 
+	// Drag and drop stuff
+	void HandleDragEnter(DragEventArgs e) { }
+	void HandleDragLeave(DragEventArgs e) { }
+	void HandleDrop(DragEventArgs e) { }
+
+	// SignalR stuff
 	protected override async Task OnInitializedAsync()
 	{
 		_hubConnection = new HubConnectionBuilder().WithUrl(_navigationManager.ToAbsoluteUri("/chesshub")).Build();
