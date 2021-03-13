@@ -11,8 +11,14 @@
 	@for (var i = 0; i < 64; i++)
 	{
 		var j = i;
-		<div class="chessboard-cell" @ondragenter="@(e => { HandleDragEnter(e, j); })" @ondragleave="@(e => { HandleDragLeave(e, j); })" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="@(e => { HandleDrop(e, j); })" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
-			<span draggable="true" @ondragstart="@(e => { HandleDragStart(e, j); })" style="cursor: grab">
+		<div class="chessboard-cell"
+		     @ondragenter="@(e => { HandleDragEnter(e, j); })"
+		     @ondragleave="@(e => { HandleDragLeave(e, j); })"
+		     ondragover="event.preventDefault();"
+		     ondragstart="event.dataTransfer.setData('', event.target.id);"
+		     @ondrop="@(e => { HandleDrop(e, j); })"
+		     style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+			<span draggable="true" style="cursor: grab" @ondragstart="@(e => { HandleDragStart(e, j); })">
 				@_board?.Cells.ElementAtOrDefault(i)?.Character
 			</span>
 		</div>
@@ -26,7 +32,6 @@
 	// Drag and drop stuff
 	void HandleDragEnter(DragEventArgs e, int i) { }
 	void HandleDragLeave(DragEventArgs e, int i) { }
-
 	void HandleDragStart(DragEventArgs e, int i)
 	{
 		_draggingIndex = i;
@@ -40,15 +45,28 @@
 		Console.WriteLine($"Dropped piece #{_draggingIndex} ({_board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
 
 		if (ChessProcessor.MoveIsValid(_board, _draggingIndex.Value, i))
-
+		{
 			Console.WriteLine("Move is allowed");
-
+			MovePiece(_draggingIndex.Value, i);
+		}
 		else
-
 			Console.WriteLine("Move is not allowed");
-
-
+		
+		
 		_draggingIndex = null;
 	}
 
+	void MovePiece(int startIndex, int endIndex)
+	{
+		var pieceToMove = _board.Cells[startIndex];
+		_board.Cells[startIndex] = new();
+		if (_board.Cells[endIndex].Piece.HasValue) TakePiece(endIndex);
+		_board.Cells[endIndex] = pieceToMove;
+	}
+
+	void TakePiece(int pieceIndex)
+	{
+		var piece = _board.Cells[pieceIndex];
+		throw new NotImplementedException();
+	}
 }
