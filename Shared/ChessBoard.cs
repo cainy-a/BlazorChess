@@ -4,7 +4,7 @@ namespace BlazorChess.Shared
 {
 	public class ChessBoard
 	{
-		public ChessBoardCell[] Cells = new ChessBoardCell[64];
+		public ChessBoardCell[] Cells { get; set; } = new ChessBoardCell[64];
 
 		public static ChessBoard DefaultChessBoard
 		{

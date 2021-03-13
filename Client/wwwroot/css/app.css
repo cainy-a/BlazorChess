@@ -48,6 +48,10 @@ html, body {
     font-size: .6em;
 }
 
+.taken-pieces .piece {
+    font-size: 2em;
+}
+
 #blazor-error-ui {
     color: black;
     background: lightyellow;

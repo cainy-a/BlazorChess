@@ -1,9 +1,13 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
-@using BlazorChess.Client.Components
 @using BlazorChess.Shared
 @inject NavigationManager _navigationManager
 @implements IAsyncDisposable
+
+@{
+	const string lightColour = "#bcbcbc";
+	const string darkColour = "#777777";
+}
 
 @if (!IsConnected)
 {
@@ -13,7 +17,23 @@
 }
 
 <div class="board-flex-container">
-	<Chessboard Game="@_game" />
+	<div class="chessboard">
+    	@for (var i = 0; i < 64; i++)
+    	{
+    		var j = i;
+    		<div class="chessboard-cell"
+    		     @ondragenter="@(e => { HandleDragEnter(e, j); })"
+    		     @ondragleave="@(e => { HandleDragLeave(e, j); })"
+    		     ondragover="event.preventDefault();"
+    		     ondragstart="event.dataTransfer.setData('', event.target.id);"
+    		     @ondrop="@(e => { HandleDrop(e, j); })"
+    		     style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+    			<span draggable="true" style="cursor: grab" @ondragstart="@(e => { HandleDragStart(e, j); })">
+    				@_game.Board?.Cells.ElementAtOrDefault(i)?.Character
+    			</span>
+    		</div>
+    	}
+    </div>
 
 	<div class="ui card chessboard-sidebar fluid inverted">
 		<div style="width: max-content; margin-bottom: 1rem">
@@ -22,40 +42,101 @@
 		</div>
 		<p>No signups, leaderboards, social features, weird gamemodes, none of that. It's just chess. Easy and simple.</p>
 
-		<p>TODO FOR FUTURE ME: Important game info here 🔽</p>
-		<div class="fluid inverted placeholder ui">
-			@foreach (var n in new[] {5, 7, 3})
-			{
-				<div class="paragraph">
-					@for (var i = 0; i < n; i++)
-					{
-						<div class="line"></div>
-					}
-				</div>
-			}
+		<div class="sidebar-segment taken-pieces">
+			Taken by black:
+			@foreach(var piece in _game.TakenByBlack){ <span class="piece">@piece.GetChar(false)</span> }
+			<br />
+			Taken by white:
+			@foreach(var piece in _game.TakenByWhite){ <span class="piece">@piece.GetChar(true)</span> }
 		</div>
 	</div>
 </div>
 
 @code {
-	private HubConnection _hubConnection;
-	private string _pos1;
-	private string _pos2;
+	///////////////
+	// Misc code //
+	///////////////
 	private ChessGame _game = new();
 
-	// SignalR stuff
+	//////////////////
+	// SignalR code //
+	//////////////////
+	private HubConnection _hubConnection;
 	protected override async Task OnInitializedAsync()
 	{
 		_hubConnection = new HubConnectionBuilder().WithUrl(_navigationManager.ToAbsoluteUri("/chesshub")).Build();
 
-		_hubConnection.On<string, string>("ReceiveMove", (pos1, pos2) => { StateHasChanged(); });
+		_hubConnection.On<int, int>("ReceiveMove", (pos1, pos2) => {MovePiece(pos1, pos2); StateHasChanged(); });
+
+		_hubConnection.On<ChessGame>("ReceiveGame", game => { _game = game; StateHasChanged(); });
 
 		await _hubConnection.StartAsync();
+		
+		// get the board when reloading
+		await _hubConnection.SendAsync("AskForGame", "a");
 	}
 
-	Task Send() => _hubConnection.SendAsync("SendMove", _pos1, _pos2);
+	Task SendMove(int startIndex, int endIndex) => _hubConnection.SendAsync("SendMove", startIndex, endIndex);
+	Task SendGame(ChessGame game) => _hubConnection.SendAsync("SendGame", "a", game); // TODO: use game ID instead of "a"
 
-	public bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
+	private bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
 
 	public async ValueTask DisposeAsync() { await _hubConnection.DisposeAsync(); }
+	
+	/////////////////////
+	// Chessboard code //
+	/////////////////////
+	private int? _draggingIndex = null;
+
+	// Drag and drop stuff
+	void HandleDragEnter(DragEventArgs e, int i) { }
+	void HandleDragLeave(DragEventArgs e, int i) { }
+	void HandleDragStart(DragEventArgs e, int i)
+	{
+		_draggingIndex = i;
+		var cell = _game.Board.Cells[_draggingIndex.Value];
+		Console.WriteLine($"Began dragging piece #{_draggingIndex} ({cell.Character})");
+	}
+
+	void HandleDrop(DragEventArgs e, int i)
+	{
+		if (_draggingIndex == null) return;
+		Console.WriteLine($"Dropped piece #{_draggingIndex} ({_game.Board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
+
+		if (ChessProcessor.MoveIsValid(_game.Board, _draggingIndex.Value, i))
+		{
+			Console.WriteLine("Move is allowed");
+			MoveAndSend(_draggingIndex.Value, i);
+		}
+		else
+			Console.WriteLine("Move is not allowed");
+		
+		
+		_draggingIndex = null;
+	}
+
+	void MovePiece(int startIndex, int endIndex)
+	{
+		var pieceToMove = _game.Board.Cells[startIndex];
+		_game.Board.Cells[startIndex] = new();
+		if (_game.Board.Cells[endIndex].Piece.HasValue) TakePiece(endIndex);
+		_game.Board.Cells[endIndex] = pieceToMove;
+	}
+
+	void MoveAndSend(int startIndex, int endIndex)
+	{
+		MovePiece(startIndex, endIndex);
+		SendMove(startIndex, endIndex);
+		SendGame(_game);
+	}
+
+	void TakePiece(int pieceIndex)
+	{
+		Console.WriteLine($"Taken piece #{pieceIndex}");
+	// ReSharper disable PossibleInvalidOperationException
+		if (_game.Board.Cells[pieceIndex].IsBlack) _game.TakenByWhite.Add(_game.Board.Cells[pieceIndex].Piece.Value);
+		else _game.TakenByBlack.Add(_game.Board.Cells[pieceIndex].Piece.Value);
+	// ReSharper restore PossibleInvalidOperationException
+	}
+
 }

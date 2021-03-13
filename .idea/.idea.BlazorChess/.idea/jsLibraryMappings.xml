@@ -9,7 +9,6 @@
     <file url="file://$PROJECT_DIR$/Client/Shared/MainLayout.razor" libraries="{jquery-3.5.1.slim}" />
     <file url="file://$PROJECT_DIR$/Client/Shared/MainLayout.razor.css" libraries="{jquery-3.5.1.slim}" />
     <file url="file://$PROJECT_DIR$/Client/_Imports.razor" libraries="{jquery-3.5.1.slim}" />
-    <file url="file://$PROJECT_DIR$/Client/obj/Debug/net5.0/BlazorChess.Client.AssemblyInfo.cs" libraries="{jquery-3.5.1.slim}" />
     <file url="file://$PROJECT_DIR$/Client/wwwroot/css/Fomantic-UI/components/accordion.css" libraries="{jquery-3.5.1.slim}" />
     <file url="file://$PROJECT_DIR$/Client/wwwroot/css/Fomantic-UI/components/accordion.js" libraries="{jquery-3.5.1.slim}" />
     <file url="file://$PROJECT_DIR$/Client/wwwroot/css/Fomantic-UI/components/accordion.min.css" libraries="{jquery-3.5.1.slim}" />
