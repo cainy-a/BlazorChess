@@ -1,0 +1,54 @@
+﻿@using BlazorChess.Shared
+@using Microsoft.Extensions.Logging
+@using System.Reflection.Metadata
+@inject ILogger<Chessboard> _logger
+@{
+	const string lightColour = "#bcbcbc";
+	const string darkColour = "#777777";
+}
+
+<div class="chessboard">
+	@for (var i = 0; i < 64; i++)
+	{
+		var j = i;
+		<div class="chessboard-cell" @ondragenter="@(e => { HandleDragEnter(e, j); })" @ondragleave="@(e => { HandleDragLeave(e, j); })" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="@(e => { HandleDrop(e, j); })" style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
+			<span draggable="true" @ondragstart="@(e => { HandleDragStart(e, j); })" style="cursor: grab">
+				@_board?.Cells.ElementAtOrDefault(i)?.Character
+			</span>
+		</div>
+	}
+</div>
+
+@code {
+	private ChessBoard _board = ChessBoard.DefaultChessBoard;
+	private int? _draggingIndex = null;
+
+	// Drag and drop stuff
+	void HandleDragEnter(DragEventArgs e, int i) { }
+	void HandleDragLeave(DragEventArgs e, int i) { }
+
+	void HandleDragStart(DragEventArgs e, int i)
+	{
+		_draggingIndex = i;
+		var cell = _board.Cells[_draggingIndex.Value];
+		Console.WriteLine($"Began dragging piece #{_draggingIndex} ({cell.Character})");
+	}
+
+	void HandleDrop(DragEventArgs e, int i)
+	{
+		if (_draggingIndex == null) return;
+		Console.WriteLine($"Dropped piece #{_draggingIndex} ({_board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
+
+		if (ChessProcessor.MoveIsValid(_board, _draggingIndex.Value, i))
+
+			Console.WriteLine("Move is allowed");
+
+		else
+
+			Console.WriteLine("Move is not allowed");
+
+
+		_draggingIndex = null;
+	}
+
+}

@@ -3,11 +3,32 @@ html, body {
     color: white;
 }
 
+.chessboard {
+    --cell-size: 5rem;
+    display: grid;
+    grid-template-columns: repeat(8, var(--cell-size));
+    grid-auto-rows: var(--cell-size);
+    border: solid 1px darkgrey;
+    width: min-content;
+}
+.chessboard-cell {
+    color: black;
+    font-size: calc(var(--cell-size) - 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.chessboard-sidebar {
+    margin: 0 0 0 1rem !important;
+    padding: 1rem !important;
+}
+
 .webassembly-placeholder {
     text-align: center;
-    font-size: 3rem;
-    position: relative;
+}
+.webassembly-placeholder.main{
     padding-top: calc(50vh - 3rem);
+    font-size: 3rem;
 }
 
 .webassembly-placeholder .ui.loader {

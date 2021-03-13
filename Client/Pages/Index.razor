@@ -1,14 +1,9 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
 @using BlazorChess.Shared
+@using BlazorChess.Client.Components
 @inject NavigationManager _navigationManager
 @implements IAsyncDisposable
-
-@{
-	const string cellDimensions = "5rem";
-	const string lightColour = "#bcbcbc";
-	const string darkColour = "#777777";
-}
 
 @if (!IsConnected)
 {
@@ -18,20 +13,7 @@
 }
 
 <div style="display: flex;">
-	<div class="chessboard">
-		@for (var i = 0; i < 64; i++)
-		{
-			<div class="chessboard-cell"
-				 @ondragenter="HandleDragEnter"
-				 @ondragleave="HandleDragLeave"
-				 ondragover="event.preventDefault();"
-				 ondragstart="event.dataTransfer.setData('', event.target.id);"
-				 @ondrop="HandleDrop"
-				 style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
-				<span draggable="true" style="cursor: grab">@_board?.Cells.ElementAtOrDefault(i)?.Character</span>
-			</div>
-		}
-	</div>
+	<Chessboard />
 
 	<div class="ui card chessboard-sidebar fluid inverted">
 		<div style="width: max-content; margin-bottom: 1rem">
@@ -55,38 +37,10 @@
 	</div>
 </div>
 
-<style>
-	.chessboard {
-		display: grid;
-		grid-template-columns: repeat(8, @cellDimensions);
-		grid-auto-rows: @cellDimensions;
-		border: solid 1px darkgrey;
-		width: min-content;
-	}
-	.chessboard-cell {
-		color: black;
-		font-size: calc(@cellDimensions - 1rem);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.chessboard-sidebar {
-		margin: 0 0 0 1rem !important;
-		padding: 1rem !important;
-	}
-</style>
-
 @code {
 	private HubConnection _hubConnection;
 	private string _pos1;
 	private string _pos2;
-	private ChessBoard _board = ChessBoard.DefaultChessBoard;
-	private Piece _draggingPiece;
-
-	// Drag and drop stuff
-	void HandleDragEnter(DragEventArgs e) { }
-	void HandleDragLeave(DragEventArgs e) { }
-	void HandleDrop(DragEventArgs e) { }
 
 	// SignalR stuff
 	protected override async Task OnInitializedAsync()
