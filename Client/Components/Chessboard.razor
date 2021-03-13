@@ -19,14 +19,16 @@
 		     @ondrop="@(e => { HandleDrop(e, j); })"
 		     style="background-color: @(i % 2 == (i / 8 % 2 == 0 ? 0 : 1) ? lightColour : darkColour)">
 			<span draggable="true" style="cursor: grab" @ondragstart="@(e => { HandleDragStart(e, j); })">
-				@_board?.Cells.ElementAtOrDefault(i)?.Character
+				@Board?.Cells.ElementAtOrDefault(i)?.Character
 			</span>
 		</div>
 	}
 </div>
 
 @code {
-	private ChessBoard _board = ChessBoard.DefaultChessBoard;
+	[Parameter]
+	public ChessGame Game { get; set; }
+	private ChessBoard Board => Game.Board;
 	private int? _draggingIndex = null;
 
 	// Drag and drop stuff
@@ -35,16 +37,16 @@
 	void HandleDragStart(DragEventArgs e, int i)
 	{
 		_draggingIndex = i;
-		var cell = _board.Cells[_draggingIndex.Value];
+		var cell = Board.Cells[_draggingIndex.Value];
 		Console.WriteLine($"Began dragging piece #{_draggingIndex} ({cell.Character})");
 	}
 
 	void HandleDrop(DragEventArgs e, int i)
 	{
 		if (_draggingIndex == null) return;
-		Console.WriteLine($"Dropped piece #{_draggingIndex} ({_board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
+		Console.WriteLine($"Dropped piece #{_draggingIndex} ({Board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
 
-		if (ChessProcessor.MoveIsValid(_board, _draggingIndex.Value, i))
+		if (ChessProcessor.MoveIsValid(Board, _draggingIndex.Value, i))
 		{
 			Console.WriteLine("Move is allowed");
 			MovePiece(_draggingIndex.Value, i);
@@ -58,15 +60,18 @@
 
 	void MovePiece(int startIndex, int endIndex)
 	{
-		var pieceToMove = _board.Cells[startIndex];
-		_board.Cells[startIndex] = new();
-		if (_board.Cells[endIndex].Piece.HasValue) TakePiece(endIndex);
-		_board.Cells[endIndex] = pieceToMove;
+		var pieceToMove = Board.Cells[startIndex];
+		Board.Cells[startIndex] = new();
+		if (Board.Cells[endIndex].Piece.HasValue) TakePiece(endIndex);
+		Board.Cells[endIndex] = pieceToMove;
 	}
 
 	void TakePiece(int pieceIndex)
 	{
-		var piece = _board.Cells[pieceIndex];
-		throw new NotImplementedException();
+		Console.WriteLine($"Taken piece #{pieceIndex}");
+	// ReSharper disable PossibleInvalidOperationException
+		if (Board.Cells[pieceIndex].IsBlack) Game.TakenByWhite.Add(Board.Cells[pieceIndex].Piece.Value);
+		else Game.TakenByBlack.Add(Board.Cells[pieceIndex].Piece.Value);
+	// ReSharper restore PossibleInvalidOperationException
 	}
 }

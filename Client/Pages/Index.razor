@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
-@using BlazorChess.Shared
 @using BlazorChess.Client.Components
+@using BlazorChess.Shared
 @inject NavigationManager _navigationManager
 @implements IAsyncDisposable
 
@@ -12,8 +12,8 @@
 	</h3>
 }
 
-<div style="display: flex;">
-	<Chessboard />
+<div class="board-flex-container">
+	<Chessboard Game="@_game" />
 
 	<div class="ui card chessboard-sidebar fluid inverted">
 		<div style="width: max-content; margin-bottom: 1rem">
@@ -41,6 +41,7 @@
 	private HubConnection _hubConnection;
 	private string _pos1;
 	private string _pos2;
+	private ChessGame _game = new();
 
 	// SignalR stuff
 	protected override async Task OnInitializedAsync()

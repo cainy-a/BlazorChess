@@ -23,6 +23,19 @@ html, body {
     padding: 1rem !important;
 }
 
+.board-flex-container {
+    display: flex;
+}
+
+@media (max-width: 1023px) {
+    .board-flex-container {
+        flex-direction: column;
+    }
+    .chessboard-sidebar {
+        margin: 1rem 0 0 0 !important;
+    }
+}
+
 .webassembly-placeholder {
     text-align: center;
 }
