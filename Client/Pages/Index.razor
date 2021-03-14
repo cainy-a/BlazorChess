@@ -80,7 +80,7 @@
 		await _hubConnection.SendAsync("AskForGame", "a");
 	}
 
-	Task SendMove(int startIndex, int endIndex) => _hubConnection.SendAsync("SendMove", startIndex, endIndex);
+	Task SendMove(int startIndex, int endIndex) => _hubConnection.SendAsync("SendMove", "a", startIndex, endIndex);
 	Task SendGame(ChessGame game) => _hubConnection.SendAsync("SendGame", "a", game); // TODO: use game ID instead of "a"
 
 	private bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
@@ -107,7 +107,8 @@
 		if (_draggingIndex == null) return;
 		Console.WriteLine($"Dropped piece #{_draggingIndex} ({_game.Board.Cells[_draggingIndex.Value].Character}) onto cell #{i}");
 
-		if (ChessProcessor.MoveIsValid(_game.Board, _draggingIndex.Value, i))
+// TODO: Remove the "true || ", it's just there for debug
+		if (true || ChessProcessor.MoveIsValid(_game.Board, _draggingIndex.Value, i))
 		{
 			Console.WriteLine("Move is allowed");
 			MoveAndSend(_draggingIndex.Value, i);
